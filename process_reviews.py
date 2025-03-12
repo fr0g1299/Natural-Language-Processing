@@ -2,6 +2,7 @@ import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from collections import Counter
 
+
 # Check if the necessary NLTK data files are already downloaded
 try:
     nltk.data.find('sentiment/vader_lexicon.zip')
@@ -44,11 +45,9 @@ def extract_words(reviews):
 
     # Get the most common words
     most_common_words = Counter(words_filtered).most_common(30)
-    print(most_common_words)
 
     # Get the longest words
     longest_words = sorted(set(words_filtered), key=len, reverse=True)[:30]
     longest_words = [(word, words_filtered.count(word)) for word in longest_words]
-    print(longest_words)
 
     return most_common_words, longest_words

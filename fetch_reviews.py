@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def fetch_reviews(url):
+def fetch_reviews(url, limit=1000):
     """Fetches reviews from IMDb, including loading all available reviews."""
 
     driver = webdriver.Chrome()
@@ -13,6 +13,15 @@ def fetch_reviews(url):
 
     total_reviews = 0
     title = ""
+
+    try:
+        # Check if the "User reviews" button is visible and click it
+        user_reviews_button = driver.find_element(By.XPATH, "//a[contains(@href, '/reviews') and contains(@class, 'ipc-title-link-wrapper')]")
+        driver.execute_script("arguments[0].scrollIntoView(true);", user_reviews_button)
+        time.sleep(1)
+        user_reviews_button.click()
+    except:
+        pass
 
     try:
         # Get the title of the movie/TV show
@@ -26,10 +35,12 @@ def fetch_reviews(url):
         total_reviews_element = driver.find_element(By.XPATH, "//div[@data-testid='tturv-total-reviews']")
         total_reviews_text = total_reviews_element.text.replace(',', '')  # Remove commas from the number
         total_reviews = int(total_reviews_text.split()[0])
-        # print(f"Total reviews: {total_reviews}")
     except:
         return []  # Return an empty list if no reviews are found
     
+    if limit == -1:
+        limit = total_reviews
+
     # If there are more than 25 reviews, expand all reviews
     if total_reviews > 25:
         try:
@@ -42,7 +53,7 @@ def fetch_reviews(url):
 
                 # Wait until all reviews are loaded or a timeout occurs
                 WebDriverWait(driver, 60).until(
-                    lambda d: len(d.find_elements(By.CSS_SELECTOR, 'article.sc-7d2e5b85-1.cvfQlw.user-review-item')) >= total_reviews or len(d.find_elements(By.CSS_SELECTOR, 'article.sc-7d2e5b85-1.cvfQlw.user-review-item')) >= 1000)
+                                    lambda d: len(d.find_elements(By.CSS_SELECTOR, 'article.sc-7d2e5b85-1.cvfQlw.user-review-item')) >= min(total_reviews, limit))
         except Exception as e:
             print("Could not find or click the 'All' button:", e)
     
